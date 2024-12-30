@@ -2,12 +2,13 @@ import pandas as pd
 import random
 import re
 from tkinter.messagebox import showinfo
+from tkinter.messagebox import askyesno
 from tkinter import *
 
 # with open("Automobile.csv", "r") as file:
 #     content = pandas(file.read())
 try:
-    data = pd.read_csv("Automobile.csv") 
+    data = pd.read_csv("data/Automobile.csv") 
     car_origin = data[["name" , "origin"]]
 
     # create question answer list
@@ -33,7 +34,7 @@ username = input("What is your username: ")
 def get_highest_score():
      # get the highest score form the text file
     try:
-        with open("score.txt", "r") as file:
+        with open("data/score.txt", "r") as file:
             scores = [line.strip().split(": ") for line in file.readlines()]
             scores = [(name, int(s)) for name, s in scores]
             highest = max(scores, key=lambda x: x[1])
@@ -80,16 +81,45 @@ def check_answer():
     next_question()
 
 def end_game():
-     # End of the game, show the final score and save it in file
-     canvas.itemconfig(card_title, text= "Game Over", fill= "black")
-     canvas.itemconfig(card_word, text= f"Final Score: {score}", fill="black")
-     canvas.itemconfig(card_background, image=card_front_img)
-     save_score()
-     highest_score_label.config(text= f"Highest Score: {get_highest_score()}")
+    # End of the game, show the final score and save it in file
+    canvas.itemconfig(card_title, text= "Game Over", fill= "black")
+    canvas.itemconfig(card_word, text= f"Final Score: {score}", fill="black")
+    canvas.itemconfig(card_background, image=card_front_img)
+    save_score()
+    highest_score_label.config(text= f"Highest Score: {get_highest_score()}")
+    play_again = askyesno("Play Again", "Do you want to play again?")
+    if play_again:
+        reset_game()
+    else:
+        window.quit()
+
+def reset_game():
+    #Resets the game state for a new round."""
+    global score, question_count, game_dict
+
+    # Reset the score and question count
+    score = 0
+    question_count = 0
+
+    # Reload the game data
+    try:
+        data = pd.read_csv("data/Automobile.csv")
+        car_origin = data[["name", "origin"]]
+        questions = car_origin["name"].to_list()
+        answers = car_origin["origin"].to_list()
+        game_dict = dict(zip(questions, answers))
+    except FileNotFoundError:
+        print("The CSV file could not be found.")
+        game_dict = {}
+
+    # Update the score label and start a new round
+    score_label.config(text="Score: 0")
+    next_question()
+     
 
 def save_score():
     #save the user score to text file
-    with open("score.txt", "a") as file:
+    with open("data/score.txt", "a") as file:
               file.write(f"{username}: {score}\n")
 
 window = Tk()
